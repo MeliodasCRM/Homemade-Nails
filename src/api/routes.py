@@ -12,6 +12,7 @@ api = Blueprint('api', __name__)
 # Allow CORS requests to this API
 CORS(api)
 
+# Registro de usuarios
 @api.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -51,3 +52,20 @@ def signup():
         db.session.rollback()
         print(f"Error en el endpoint /signup: {str(e)}")
         return jsonify({"message": "Error interno en el servidor", "error": str(e)}), 500
+# Login usuarios
+@api.route('/login', methods=['POST'])
+def login():
+    data = data.request.json()
+    
+    data.get('email')
+    data.get('password')
+
+    if not email or not password:
+        return jsonify({"message": "Invalid email or password"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not check_password_hash(user.password, password):
+        return jsonify({"message": "Usuario o contraseñas incorrectos"}), 401
+
+    token = create_access_token(identity=str(user.id))
+    return token
