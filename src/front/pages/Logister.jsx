@@ -54,11 +54,11 @@ const Logister = () => {
           <span>or use your account</span>
           <form onSubmit={handleSignInSubmit}>
             <div className="type">
-              <input 
-                type="email" 
-                placeholder="Email" 
-                id="emailSignIn" 
-                required 
+              <input
+                type="email"
+                placeholder="Email"
+                id="emailSignIn"
+                required
               />
             </div>
             <div className="type password-container">
@@ -95,19 +95,19 @@ const Logister = () => {
           <span>or use your email for registration</span>
           <form onSubmit={handleSignUpSubmit}>
             <div className="type">
-              <input 
-                type="text" 
-                placeholder="Name" 
-                id="name" 
-                required 
+              <input
+                type="text"
+                placeholder="Username"
+                id="name"
+                required
               />
             </div>
             <div className="type">
-              <input 
-                type="email" 
-                placeholder="Email" 
-                id="emailSignUp" 
-                required 
+              <input
+                type="email"
+                placeholder="Email"
+                id="emailSignUp"
+                required
               />
             </div>
             <div className="type password-container">
@@ -115,6 +115,8 @@ const Logister = () => {
                 type={showPassword.signUp ? "text" : "password"}
                 placeholder="Password"
                 id="passwordSignUp"
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&]{8,}$"
+                title="La contraseña debe tener al menos 8 caracteres, incluyendo una letra minúscula, una mayúscula, un número y un carácter especial"
                 required
                 value={passwords.signUp}
                 onChange={(e) => handlePasswordChange("signUp", e.target.value)}
@@ -136,7 +138,6 @@ const Logister = () => {
         </div>
       </div>
 
-      {/* Área rosa con mensajes de bienvenida */}
       <div className="overlay">
         <div className="page page_signIn">
           <h3>Welcome Back!</h3>

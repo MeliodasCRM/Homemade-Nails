@@ -27,26 +27,38 @@ body {
 }
 
 .container .box {
-    width: 50%;
+    position: absolute; /* Cambiado a posición absoluta */
+    width: 50%;        /* Mantiene el 50% del ancho */
     height: 100%;
     background-color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 2;
-    position: relative;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    left: 0;           /* Asegura que empiece desde la izquierda */
+}
+
+.container.active .box {
+    transform: translateX(100%); /* Mueve a la derecha cuando está activo */
 }
 
 .container .overlay {
-    width: 50%;
+    position: absolute; /* Cambiado a posición absoluta */
+    width: 50%;        /* Mantiene el 50% del ancho */
     height: 100%;
     background-color: #FF4167;
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
     z-index: 1;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    right: 0;          /* Asegura que empiece desde la derecha */
+}
+
+.container.active .overlay {
+    transform: translateX(-100%); /* Mueve a la izquierda cuando está activo */
 }
 
 .container .overlay::before {
@@ -190,19 +202,6 @@ body {
 
 .overlay .btn:hover {
     background-color: rgba(255, 255, 255, 0.2);
-}
-
-.container .box,
-.container .overlay {
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.container.active .box {
-    transform: translateX(100%);
-}
-
-.container.active .overlay {
-    transform: translateX(-100%);
 }
 
 .form.sign_up {
