@@ -69,3 +69,30 @@ def login():
 
     token = create_access_token(identity=str(user.id))
     return token
+
+# Obtención de usuario
+def get_user():
+    try:
+        # Obtener el id desde el JWT
+        user_id = get_jwt_identity()
+        print(f"Usuario autenticado con id: {user_id}")  
+
+        if not user_id:
+            # Si no se obtiene el id desde el JWT
+            return jsonify({"message": "No se encontró el usuario autenticado en el token"}), 401
+
+        # Buscar el usuario por id
+        user = User.query.get(user_id)
+
+        if not user:
+            # Si no se encuentra el usuario en la base de datos
+            print(f"Usuario con id {user_id} no encontrado en la base de datos.")
+            return jsonify({"message": "Usuario no encontrado"}), 404
+
+        # Si el usuario es encontrado, devolver la información serializada
+        return jsonify(user.serialize()), 200
+
+    except Exception as e:
+        # Captura cualquier otro error y lo reporta
+        print(f"Error al obtener el usuario: {str(e)}")
+        return jsonify({"message": "Error al obtener el usuario", "error": str(e)}), 500
