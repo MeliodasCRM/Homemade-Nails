@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User, Post, Comment, Likes, New, Tutorial
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
 api = Blueprint('api', __name__)
@@ -55,10 +56,10 @@ def signup():
 # Login usuarios
 @api.route('/login', methods=['POST'])
 def login():
-    data = data.request.json()
+    data = request.get_json()
     
-    data.get('email')
-    data.get('password')
+    email = data.get('email')
+    password = data.get('password')
 
     if not email or not password:
         return jsonify({"message": "Invalid email or password"}), 400
@@ -68,9 +69,10 @@ def login():
         return jsonify({"message": "Usuario o contraseñas incorrectos"}), 401
 
     token = create_access_token(identity=str(user.id))
-    return token
+    return(token)
 
 # Obtención de usuario
+@api.route('/user', methods=['GET'])
 def get_user():
     try:
         # Obtener el id desde el JWT
@@ -96,3 +98,32 @@ def get_user():
         # Captura cualquier otro error y lo reporta
         print(f"Error al obtener el usuario: {str(e)}")
         return jsonify({"message": "Error al obtener el usuario", "error": str(e)}), 500
+
+# Actualizar los datos del usuario
+@api.route('/user', methods=['PUT'])
+@jwt_required()
+def update_user(user_id):
+    try:
+        user_id = get_jwt_identity()
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "Usuario no encontrado"}), 404
+        
+        data = request.get_json()
+
+        if "email" in data:
+            user.email = data["email"]
+        if "username" in data:
+            user.username = data["username"]
+        if "user_avatar" in data:
+            user.user_avatar = data["user_avatar"]
+        if "password" in data:
+            user.password = data["password"]
+
+        db.session.commit()
+
+        return jsonify(user.serialize()), 200
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"message": "Error al actualizar el usuario", "error":str(e)}), 500
