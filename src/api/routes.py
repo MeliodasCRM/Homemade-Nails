@@ -7,6 +7,8 @@ from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
+import json
+import os
 
 api = Blueprint('api', __name__)
 
@@ -15,7 +17,7 @@ CORS(api)
 
 # Registro de usuarios
 @api.route('/signup', methods=['POST'])
-def signup():
+def handle_signup():
     try:
         # Recibir los datos
         data = request.get_json()
@@ -54,11 +56,14 @@ def signup():
         db.session.rollback()
         print(f"Error en el endpoint /signup: {str(e)}")
         return jsonify({"message": "Error interno en el servidor", "error": str(e)}), 500
+    
 # Login usuarios
 @api.route('/login', methods=['POST'])
-def login():
+def handle_login():
     # Verificar si los datos están presentes
-    data = request.get_json()
+    data = request.json
+    if not data:
+        return jsonify({"message": "Se deben enviar datos formato json"}), 400
     # Obtener mail y contraseña del cuerpo de la solicitud
     email = data.get('email')
     password = data.get('password')
@@ -71,10 +76,11 @@ def login():
         return jsonify({"message": "Usuario o contraseñas incorrectos"}), 401
     # Crear token de acceso usando el id
     token = create_access_token(identity=str(user.id))
-    return(token)
-
+    return jsonify({"token": token}), 200
+    
 # Obtención de usuario
 @api.route('/user', methods=['GET'])
+@jwt_required()
 def get_user():
     try:
         # Obtener el id desde el JWT
