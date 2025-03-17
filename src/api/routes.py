@@ -158,3 +158,24 @@ def delete_user(user_id):
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"message": "Error al eliminar el contacto"}), 500
+    
+# Crear un post
+@api.route('/post', methods=['POST'])
+@jwt_required()
+def create_post():
+    data = request.get_json()
+
+    if not data or 'contenido' not in data:
+        return jsonify({"error": "No puedes crear un post vacío"}), 400
+    
+    user_id = get_jwt_identity()
+    new_post = Post(
+        user_id = user_id,
+        contenido=data['contenido'],
+        post_img=data.get('post_img')
+    )
+
+    db.session.add(new_post)
+    db.session.commit()
+
+    return jsonify({"message": "Post creado con éxito"}), 201
