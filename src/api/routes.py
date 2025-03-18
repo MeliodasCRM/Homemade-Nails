@@ -160,7 +160,7 @@ def delete_user(user_id):
         return jsonify({"message": "Error al eliminar el contacto"}), 500
     
 # Crear un post
-@api.route('/post', methods=['POST'])
+@api.route('/create/post', methods=['POST'])
 @jwt_required()
 def create_post():
     data = request.get_json()
@@ -179,3 +179,52 @@ def create_post():
     db.session.commit()
 
     return jsonify({"message": "Post creado con éxito"}), 201
+
+# Eliminar post
+@api.route('/delete/post/<int:post_id>', methods=['DELETE'])
+@jwt_required()
+def delete_post(post_id):
+    try:
+        # Obtener al usuario autenticado y buscar el post en la base de datos por id
+        user_id = get_jwt_identity()
+        post = Post.query.get(post_id)
+        # Si no encuentra el post o si el usuario que intenta eliminar no es el asociado al post, devuelve error
+        if not post:
+            return jsonify({"error": "No se ha encontrado el post"}), 404
+                        #Tiene que convertirse a integer ya que lo coge como string y al compararlo devuelve error
+        if post.user_id != int(user_id):
+            return jsonify({"error": "No tienes permiso para eliminar este post!"}), 403
+        # Borrar el post si todo es correcto, y commit en la base de datos
+        db.session.delete(post)
+        db.session.commit()
+        # Mensaje de que todo ok
+        return jsonify({"message": "Post eliminado con éxito"}), 200
+    
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": "Error al eliminar el post"}), 500
+    
+# Crear comentario 
+@api.route('/create/comment', methods=['POST'])
+@jwt_required()
+def create_comment(post_id):
+    
+    data = request.get_json()
+
+    if not data or 'contenido' not in data:
+        return jsonify({"error": "No puedes crear un comentario vacío"}), 400
+    
+    user_id = get_jwt_identity()
+    post_id = data['post_id']
+    post = Post.query.get(post_id)
+
+    new_comment = Comment(
+        user_id = user_id,
+        post_id = post.id,
+        contenido = data['contenido'],
+    )
+
+    db.session.add(new_comment)
+    db.session.commit()
+
+    return jsonify({"message": "Comentario creado con éxito"}), 200
