@@ -222,35 +222,73 @@ def get_all_posts():
     # Devuelve todos los posts con sus comentarios
     return jsonify(post_y_comm), 200
 
+# Obtener todos los posts de 
+@api.route('/feed/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_user_posts(user_id):
+
+    posts = Post.query.filter_by(user_id=user_id).order_by(Post.fecha_creacion.desc()).all()
+
+    user_posts = []
+    for post in posts:
+        user_posts.append({
+            "post": post.serialize(),
+            "comments": [comment.serialize() for comment in post.comments]
+        })
+    
+    return jsonify(user_posts), 200
+
 # Crear comentario 
 @api.route('/create/comment', methods=['POST'])
 @jwt_required()
 def create_comment():
-    
+    # Solicitar datos
     data = request.get_json()
-
+    # Si falta el contenido, devuelve error
     if not data or 'contenido' not in data:
         return jsonify({"error": "No puedes crear un comentario vacío"}), 400
-    
+    #Si falta el post_id devuelve error
     if 'post_id' not in data:
         return jsonify({"error": "Falta el post_id"}), 400
-
+    # Busca el post por id en la tabla
     post_id = data['post_id']
     post = Post.query.get(post_id)
-
+    # Si no está, devuelve error
     if not post:
         return jsonify({"error": "El post no existe"}), 404
-    
+    # Obtiene el user id por el token
     user_id = get_jwt_identity()
-    
 
+    # Crea comentario con lo necesario
     new_comment = Comment(
         user_id = user_id,
         post_id = post_id,
         contenido = data['contenido'],
     )
 
+    # Añade los cambios y hace el commit, y devuelve mensaje de éxito en la creación
     db.session.add(new_comment)
     db.session.commit()
 
     return jsonify({"message": "Comentario creado con éxito"}), 200
+
+# Eliminar comentario
+@api.route('/delete/comments/<int:comment_id>')
+@jwt_required()
+def delete_comment(comment_id):
+    try:
+        user_id = get_jwt_identity()
+        comment = Comment.query.get(comment_id)
+
+        if not comment:
+            return jsonify({"error": "El comentario no existe"}), 404
+        
+        if comment.user_id != int(user_id):
+            return jsonify({"error": "No tienes permiso para eliminar este comentario"}), 403
+        
+        db.session.delete(comment)
+        db.session.commit()
+
+    except  Exception as e:
+        print(f"error: {str(e)}")
+        return jsonify({"error": "Error al eliminar el comentario"}), 500
