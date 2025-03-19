@@ -203,24 +203,50 @@ def delete_post(post_id):
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"error": "Error al eliminar el post"}), 500
-    
+
+# Obtener todos los posts con sus comentarios
+@api.route('/feed', methods=['GET'])
+@jwt_required()
+def get_all_posts():
+            # Obtener todos los posts ordenados por fecha
+    posts = Post.query.order_by(Post.fecha_creacion.desc()).all()
+
+    # Creo array vacío para guardar
+    post_y_comm =[]
+    for post in posts:
+        # Agrego los datos del post y los comentarios asociados al mismo
+        post_y_comm.append({
+            "post": post.serialize(),
+            "comments": [comment.serialize() for comment in post.comments]
+        })
+    # Devuelve todos los posts con sus comentarios
+    return jsonify(post_y_comm), 200
+
 # Crear comentario 
 @api.route('/create/comment', methods=['POST'])
 @jwt_required()
-def create_comment(post_id):
+def create_comment():
     
     data = request.get_json()
 
     if not data or 'contenido' not in data:
         return jsonify({"error": "No puedes crear un comentario vacío"}), 400
     
-    user_id = get_jwt_identity()
+    if 'post_id' not in data:
+        return jsonify({"error": "Falta el post_id"}), 400
+
     post_id = data['post_id']
     post = Post.query.get(post_id)
 
+    if not post:
+        return jsonify({"error": "El post no existe"}), 404
+    
+    user_id = get_jwt_identity()
+    
+
     new_comment = Comment(
         user_id = user_id,
-        post_id = post.id,
+        post_id = post_id,
         contenido = data['contenido'],
     )
 
