@@ -222,7 +222,7 @@ def get_all_posts():
     # Devuelve todos los posts con sus comentarios
     return jsonify(post_y_comm), 200
 
-# Obtener todos los posts de 
+# Obtener todos los posts del usuario con los comentarios
 @api.route('/feed/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_user_posts(user_id):
