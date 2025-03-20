@@ -292,3 +292,28 @@ def delete_comment(comment_id):
     except  Exception as e:
         print(f"error: {str(e)}")
         return jsonify({"error": "Error al eliminar el comentario"}), 500
+    
+# Crear tutorial
+
+# Eliminar tutorial
+@api.route('/delete/tutorial/<int:tutorial_id>', methods=['DELETE'])
+@jwt_required()
+def delete_tutorial(tutorial_id):
+    try:
+        user_id = get_jwt_identity()
+        tutorial = Tutorial.query.get(tutorial_id)
+
+        if not tutorial:
+            return jsonify({"error": "No existe el tutorial"}), 404
+        
+        if tutorial.user_id != int(user_id):
+            return jsonify({"error": "No tienes permiso para eliminar este tutorial"}), 403
+        
+        db.session.delete(tutorial)
+        db.session.commit()
+
+    except Exception as e:
+        print(f"error: {str(e)}")
+        return jsonify({"error": "Error al eliminar el tutorial"}), 500
+
+# Obtener tutoriales
