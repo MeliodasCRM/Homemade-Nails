@@ -294,6 +294,31 @@ def delete_comment(comment_id):
         return jsonify({"error": "Error al eliminar el comentario"}), 500
     
 # Crear tutorial
+@api.route('/create/tutorial')
+@jwt_required()
+def create_tutorial():
+    data = request.get_json()
+
+    if not data or 'video_url' not in data:
+        return jsonify({"error": "No puedes crear un tutorial sin vídeo"})
+    if not data or 'titulo' not in data:
+        return jsonify({"error": "No puedes crear un tutorial sin título"})
+    if not data or 'descripcion' not in data:
+        return jsonify({"error": "No puedes crear un tutorial sin descripción"})
+
+    user_id = get_jwt_identity()
+
+    new_tutorial = Tutorial(
+        user_id = user_id,
+        titulo = data['titulo'],
+        descripcion = data['descripcion'],
+        video_url = data['video_url']
+    )
+
+    db.session.add(new_tutorial)
+    db.session.commit()
+
+    return jsonify({"message": "Tutorial creado con éxito"}), 201
 
 # Eliminar tutorial
 @api.route('/delete/tutorial/<int:tutorial_id>', methods=['DELETE'])
