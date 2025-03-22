@@ -342,3 +342,13 @@ def delete_tutorial(tutorial_id):
         return jsonify({"error": "Error al eliminar el tutorial"}), 500
 
 # Obtener tutoriales
+@api.route('/tutorials', methods=['GET'])
+@jwt_required()
+def get_tutorials():
+    tutorials = Tutorial.query.order_by(Tutorial.id.desc()).all()
+
+    tutoriales_lista = []
+    for tutorial in tutorials:
+        tutoriales_lista.append(tutorial.serialize())
+
+    return jsonify(tutoriales_lista), 200
