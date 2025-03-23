@@ -352,3 +352,29 @@ def get_tutorials():
         tutoriales_lista.append(tutorial.serialize())
 
     return jsonify(tutoriales_lista), 200
+
+# Dar/Quitar Likes
+@api.route('/like/post/<int:post_id>', methods=['POST'])
+@jwt_required()
+def toggle_like_post(post_id):
+    user_id = get_jwt_identity()
+
+    # Verifica si el post existe
+    post = Post.query.get(post_id)
+    if not post:
+        return jsonify({"error": "El post no existe"}), 404
+
+    # Ver si el usuario ya dio like
+    existing_like = Likes.query.filter_by(user_id=user_id, post_id=post_id).first()
+
+    if existing_like:
+        # Si ya tiene like, quitarlo
+        db.session.delete(existing_like)
+        db.session.commit()
+        return jsonify({"message": "Like eliminado"}), 200
+    else:
+        # Si no tiene like, agregarlo
+        new_like = Likes(user_id=user_id, post_id=post_id)
+        db.session.add(new_like)
+        db.session.commit()
+        return jsonify({"message": "Like agregado"}), 201
